@@ -15,6 +15,7 @@
 # limitations under the License.
 #
 import webapp2
+import cgi
 
 # html boilerplate for the top of every page
 page_header = """
@@ -39,29 +40,63 @@ page_footer = """
 </body>
 </html>
 """
-def build_form(self):
-    signup_form = """
-        <form action="/signup" method="post">
-            <label>Username <input type="text" name="username" /></label><br><br>
-            <label>Password <input type="password" name="password" /></label><br><br>
-            <label>Re-enter Password <input type="password" name="verify" /></label><br><br>
-            <label>Email address (optional)<input type="Email" name="email" /></label><br><br>
-            <input type="submit" name="submit" />
-        </form>
 
+def valid_username(username):
+    illegal_chars = ()
+    valid = True
+    if len(username) < 3 or len(username) > 20:
+        valid = False
+    return valid
 
-        """
-    return signup_form
+#def build_form(self, username="", email=""):
+#    signup_form = """
+#        <form action="/" method="post">
+#            <label>Username <input type="text" name="username" value="%(username)s" /></label><br><br>
+#            <label>Password <input type="password" name="password" /></label><br><br>
+#            <label>Re-enter Password <input type="password" name="verify" /></label><br><br>
+#            <input type="submit" name="submit" />
+#        </form>
+#        """
+#    return signup_form
 
 class MainHandler(webapp2.RequestHandler):
 
     def get(self):
-        content = page_header + build_form(self) + page_footer
+        username = self.request.get("username")
+        email = self.request.get("email")
+        signup_form = """
+            <form action="/" method="post">
+                <label>Username <input type="text" name="username" value="%(username)s" /></label><br><br>
+                <label>Password <input type="password" name="password" /></label><br><br>
+                <label>Re-enter Password <input type="password" name="verify" /></label><br><br>
+                <label>Email address (optional)<input type="Email" name="email" value="%(email)s"/></label><br><br>
+                <input type="submit" name="submit" />
+            </form>
+
+
+            """
+        content = page_header + signup_form % {"username": username, "email":email} + page_footer
+        error = self.request.get("error")
+        error_element = "<p class='error'>" + error + "</p>" if error else ""
+        content += error_element
         self.response.write(content)
 
-class SignUp(webapp2.RequestHandler):
-
     def post(self):
+        username = self.request.get("username")
+        username = cgi.escape(username)
+        err_message = ""
+        if username == "":
+            err_message = "Please enter a username"
+        else:
+            if valid_username(username) == False:
+                err_message = "Username Invalid. Please try again."
+
+        if err_message != "":
+            self.redirect("/?error=" + err_message + "&username=" + username)
+        else:
+            self.redirect("/success?username=" + username)
+class Success(webapp2.RequestHandler):
+    def get(self, username=""):
         username = self.request.get("username")
         welcome_message = "<h2>Welcome, " + username + "</h2>"
         content = page_header + welcome_message + page_footer
@@ -69,5 +104,5 @@ class SignUp(webapp2.RequestHandler):
 
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
-    ('/signup', SignUp)
+    ('/success', Success)
 ], debug=True)
