@@ -73,10 +73,24 @@ class MainHandler(webapp2.RequestHandler):
         email = self.request.get("email")
         signup_form = """
             <form action="/" method="post">
-                <label>Username <input type="text" name="username" value="%(username)s" /></label><br><br>
-                <label>Password <input type="password" name="password" /></label><br><br>
-                <label>Re-enter Password <input type="password" name="verify" /></label><br><br>
-                <label>Email address (optional)<input type="text" name="email" value="%(email)s"/></label><br><br>
+                <table>
+                    <tr>
+                        <td><label>Username </label></td>
+                        <td><input type="text" name="username" value="%(username)s" /></td>
+                    </tr>
+                    <tr>
+                        <td><label>Password </label></td>
+                        <td><input type="password" name="password" /></td>
+                    </tr>
+                    <tr>
+                        <td><label>Re-enter Password </label></td>
+                        <td><input type="password" name="verify" /></td>
+                    </tr>
+                    <tr>
+                        <td><label>Email address (optional)</label></td>
+                        <td><input type="email" name="email" value="%(email)s"/></td>
+                    </tr>
+                </table>        
                 <input type="submit" name="submit" />
             </form>
 
