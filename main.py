@@ -71,35 +71,60 @@ class MainHandler(webapp2.RequestHandler):
     def get(self):
         username = self.request.get("username")
         email = self.request.get("email")
-        signup_form = """
-            <form action="/" method="post">
+        error_string = self.request.get("error")
+        error_list = error_string.split()
+        err_mess1 = ""
+        err_mess2 = ""
+        err_mess3 = ""
+        err_mess4 = ""
+
+
+#        index = 0
+#        while error_string != "":
+
+        if "blank" in error_list:
+            err_mess1 = """<td><span class="error">Please enter a username.</span></td>"""
+        if "user_invalid" in error_list:
+            err_mess1 = """<td><span class="error">Please enter a valid username.</span></td>"""
+        if "pass_invalid" in error_list:
+            err_mess2 = """<td><span class="error">Please enter a valid password.</span></td>"""
+        if "pass_blank" in error_list:
+            err_mess2 = """<td><span class="error">Please enter a password.</span></td>"""
+        if "match" in error_list:
+            err_mess3 = """<td><span class="error">Passwords do not match. Please re-enter.</span></td>"""
+        if "email_invalid" in error_list:
+            err_mess4 = """<td><span class="error">Please enter a valid email or leave this field blank.</span></td>"""
+        top_of_table = """<form action="/" method="post">
                 <table>
                     <tr>
                         <td><label>Username </label></td>
-                        <td><input type="text" name="username" value="%(username)s" /></td>
-                    </tr>
-                    <tr>
-                        <td><label>Password </label></td>
-                        <td><input type="password" name="password" /></td>
-                    </tr>
-                    <tr>
-                        <td><label>Re-enter Password </label></td>
-                        <td><input type="password" name="verify" /></td>
-                    </tr>
-                    <tr>
-                        <td><label>Email address (optional)</label></td>
-                        <td><input type="email" name="email" value="%(email)s"/></td>
-                    </tr>
-                </table>        
-                <input type="submit" name="submit" />
-            </form>
+                        <td><input type="text" name="username" value="%(username)s" /></td>"""
+        row_2 = """</tr>
 
-
+            <tr>
+                <td><label>Password </label></td>
+                <td><input type="password" name="password" /></td>
             """
+        row_3 = """</tr><tr>
+                <td><label>Re-enter Password </label></td>
+                <td><input type="password" name="verify" /></td>
+            """
+        row_4 = """</tr><tr>
+                <td><label>Email address (optional)</label></td>
+                <td><input type="email" name="email" value="%(email)s"/></td>
+            """
+        close_table = """</tr></table>
+            <input type="submit" name="submit" />
+            </form>"""
+        signup_form = top_of_table + err_mess1 + row_2 + err_mess2 + row_3 + err_mess3 + row_4 + err_mess4 + close_table
+
+
+
+
+
+
+
         content = page_header + signup_form % {"username": username, "email":email} + page_footer
-        error = self.request.get("error")
-        error_element = "<p class='error'>" + error + "</p>" if error else ""
-        content += error_element
         self.response.write(content)
 
     def post(self):
@@ -109,24 +134,27 @@ class MainHandler(webapp2.RequestHandler):
         email = cgi.escape(email)
         p1 = self.request.get("password")
         p2 = self.request.get("verify")
-        err_message = ""
+        error = ""
         if username == "":
-            err_message = "Please enter a username<br>"
+            error += "blank "
         else:
             if valid_username(username) == False:
-                err_message = "Username Invalid. Please try again.<br>"
-        if valid_password(p1) == False:
-            err_message += "Please enter a valid password.<br>"
+                error += "user_invalid "
+        if p1 == "":
+            error += "pass_blank "
         else:
-            if p1 != p2:
-                err_message += "Passwords do not match.<br>"
+            if valid_password(p1) == False:
+                error += "pass_invalid "
+            else:
+                if p1 != p2:
+                    error += "match "
         if email != "":
             if valid_email(email) == False:
-                err_message += "Please enter a valid email address or leave blank.<br>"
+                error += "email_invalid"
 
 
-        if err_message != "":
-            self.redirect("/?error=" + err_message + "&username=" + username + "&email=" + email)
+        if error != "":
+            self.redirect("/?error=" + error + "&username=" + username + "&email=" + email)
         else:
             self.redirect("/success?username=" + username)
 class Success(webapp2.RequestHandler):
